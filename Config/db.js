@@ -1,34 +1,34 @@
-const { Sequelize } = require('sequelize');
-require('dotenv').config();
+const mysql = require("mysql");
+const { Sequelize } = require("sequelize");
+require("dotenv").config();
 
-const requiredEnvVars = [
-  'DB_LOCAL_NAME', 'DB_LOCAL_USER', 'DB_LOCAL_PASS', 'DB_LOCAL_HOST', 'DB_PORT',
-  'HOST_USERNAME', 'HOST_PASSWORD', 'HOST_HOST'
-];
-
-requiredEnvVars.forEach((envVar) => {
-  if (!process.env[envVar]) {
-    console.warn(`Warning: Missing environment variable ${envVar}`);
+const sequelize = new Sequelize(
+  process.env.DB_HOST_NAME,
+  process.env.HOST_USERNAME,
+  process.env.HOST_PASSWORD,
+  {
+    host: process.env.HOST_HOST,
+    dialect: "mysql",
+    logging: false,
+    port: 3306,
+    pool: {
+      max: 5, // Nombre maximal de connexions simultanées
+      min: 0, // Nombre minimal de connexions
+      acquire: 30000, // Délai avant expiration d'une connexion (en ms)
+      idle: 10000, // Temps d'inactivité avant libération d'une connexion (en ms)
+    },
   }
-});
+);
 
-const sequelize = new Sequelize({
-  dialect: 'mysql',
-  host: process.env.DB_LOCAL_HOST || '127.0.0.1',
-  port: process.env.DB_PORT || 3306,
-  username: process.env.DB_LOCAL_USER,
-  password: process.env.DB_LOCAL_PASS,
-  database: process.env.DB_LOCAL_NAME,
-});
-
-// Initialize database connection
 async function initializeDatabase() {
   try {
     await sequelize.authenticate();
-    console.log('Connection to the database was successful!');
+    console.log("Connexion à la base de données réussie !");
+    // await sequelize.sync({ alter: true });
+    // console.log("Les tables ont été synchronisées !");
   } catch (error) {
-    console.error('Error connecting to the database:', error.message || error);
-    throw error;
+    console.error("Erreur lors de la connexion à la base de données :", error);
+    throw error; // Remonte l'erreur pour être gérée par l'appelant
   }
 }
 
