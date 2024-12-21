@@ -12,23 +12,14 @@ requiredEnvVars.forEach((envVar) => {
   }
 });
 
-const sequelize = new Sequelize(
-  process.env.DB_HOST_NAME,
-  process.env.HOST_USERNAME,
-  process.env.HOST_PASSWORD,
-  {
-    host: process.env.HOST_HOST,
-    dialect: 'mysql',
-    logging: false,
-    port: process.env.DB_PORT || 3306,
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000
-    }
-  }
-);
+const sequelize = new Sequelize({
+  dialect: 'mysql',
+  host: process.env.DB_LOCAL_HOST || '127.0.0.1',
+  port: process.env.DB_PORT || 3306,
+  username: process.env.DB_LOCAL_USER,
+  password: process.env.DB_LOCAL_PASS,
+  database: process.env.DB_LOCAL_NAME,
+});
 
 // Initialize database connection
 async function initializeDatabase() {
