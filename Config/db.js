@@ -1,34 +1,48 @@
-const mysql = require("mysql");
-const { Sequelize } = require("sequelize");
-require("dotenv").config();
+const { Sequelize } = require('sequelize');
+require('dotenv').config();  // Ensure dotenv is loaded
 
+// Check if all required environment variables are defined
+const requiredEnvVars = [
+  'DB_LOCAL_NAME', 'DB_LOCAL_USER', 'DB_LOCAL_PASS', 'DB_LOCAL_HOST', 'DB_PORT',
+  'HOST_USERNAME', 'HOST_PASSWORD', 'HOST_HOST'
+];
+
+requiredEnvVars.forEach((envVar) => {
+  if (!process.env[envVar]) {
+    console.warn(`Warning: Missing environment variable ${envVar}`);
+  }
+});
+
+// Sequelize connection setup
 const sequelize = new Sequelize(
-  process.env.DB_HOST_NAME,
-  process.env.HOST_USERNAME,
-  process.env.HOST_PASSWORD,
+  process.env.DB_LOCAL_NAME || process.env.DB_HOST_NAME,  // Use local or hosted database name
+  process.env.DB_LOCAL_USER || process.env.HOST_USERNAME,  // Use local or hosted username
+  process.env.DB_LOCAL_PASS || process.env.HOST_PASSWORD,  // Use local or hosted password
   {
-    host: process.env.HOST_HOST,
-    dialect: "mysql",
-    logging: false,
-    port: 3306,
+    host: process.env.DB_LOCAL_HOST || process.env.HOST_HOST,  // Use local or hosted host
+    dialect: 'mysql',
+    logging: false,  // Set to 'true' if you want to see SQL logs
+    port: process.env.DB_PORT || 3306,  // Default MySQL port (can be overridden)
     pool: {
-      max: 5, // Nombre maximal de connexions simultanées
-      min: 0, // Nombre minimal de connexions
-      acquire: 30000, // Délai avant expiration d'une connexion (en ms)
-      idle: 10000, // Temps d'inactivité avant libération d'une connexion (en ms)
-    },
+      max: 5,
+      min: 0,
+      acquire: 30000,
+      idle: 10000
+    }
   }
 );
 
+// Initialize database connection
 async function initializeDatabase() {
   try {
-    await sequelize.authenticate();
-    console.log("Connexion à la base de données réussie !");
-    // await sequelize.sync({ alter: true });
-    // console.log("Les tables ont été synchronisées !");
+    await sequelize.authenticate();  // Check if connection is successful
+    console.log('Connection to the database was successful!');
+    // Uncomment the next line to sync models to the DB if needed (be careful with production environments)
+    // await sequelize.sync({ alter: true });  
+    // console.log('Tables have been synchronized!');
   } catch (error) {
-    console.error("Erreur lors de la connexion à la base de données :", error);
-    throw error; // Remonte l'erreur pour être gérée par l'appelant
+    console.error('Error connecting to the database:', error.message || error);
+    throw error;  // Propagate the error for handling by the caller
   }
 }
 
